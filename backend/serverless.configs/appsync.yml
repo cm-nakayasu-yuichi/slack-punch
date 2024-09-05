@@ -1,0 +1,23 @@
+name: SlackPunch
+authenticationType: API_KEY
+region: ap-northeast-1
+mappingTemplatesLocation: resolvers
+mappingTemplates:
+  - 
+    type: Query
+    field: listMessages
+    dataSource: Message
+schema:
+  - schema/message.graphql
+dataSources:
+  - type: AMAZON_DYNAMODB
+    name: Message
+    description: Message Table
+    config:
+      tableName: Message
+      iamRoleStatements:
+        - Effect: Allow
+          Action:
+            - dynamodb:*
+          Resource:
+            - "Fn::GetAtt": [ MessageDynamoDBTable, Arn ]

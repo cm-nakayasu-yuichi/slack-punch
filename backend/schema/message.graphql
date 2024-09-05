@@ -1,0 +1,22 @@
+type Message {
+    UserId: String!
+    UserDisplayName: String!
+    IconImageUrl: String!
+    ChannelId: String!
+    Timestamp: ID!
+    PostedDate: AWSDateTime!
+    BlownDate: AWSDateTime!
+    ChannelName: String!
+    Message: String!
+    BlowUserDisplayName: String!
+    BlowUserId: String!
+}
+
+type MessagesConnection {
+    items: [Message]
+    nextToken: String
+}
+
+type Query {
+    listMessages(limit: Int, nextToken: String): MessagesConnection
+}

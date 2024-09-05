@@ -1,0 +1,15 @@
+MessageDynamoDBTable:
+  Type: 'AWS::DynamoDB::Table'
+  Properties:
+    TableName: Message
+    AttributeDefinitions:
+      - AttributeName: UserId
+        AttributeType: S
+      - AttributeName: Timestamp
+        AttributeType: N
+    KeySchema:
+      - AttributeName: UserId
+        KeyType: HASH
+      - AttributeName: Timestamp
+        KeyType: RANGE
+    BillingMode: PAY_PER_REQUEST

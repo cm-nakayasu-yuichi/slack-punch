@@ -1,0 +1,66 @@
+{
+  "name": "slack-punch",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "start": "next start",
+    "build": "next build",
+    "test": "next test",
+    "storybook": "start-storybook -p 6006 -s public",
+    "build-storybook": "build-storybook -s public",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx ."
+  },
+  "engines": {
+    "node": "14.x"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@apollo/client": "3.5.10",
+    "@emotion/react": "11.7.1",
+    "@mui/icons-material": "5.3.1",
+    "@mui/material": "5.3.1",
+    "aws-appsync-auth-link": "3.0.7",
+    "dayjs": "1.10.7",
+    "graphql": "16.3.0",
+    "next": "12.0.8",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "react-string-replace": "0.4.4"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "12.0.8",
+    "@storybook/addon-actions": "6.4.14",
+    "@storybook/addon-essentials": "6.4.14",
+    "@storybook/addon-links": "6.4.14",
+    "@storybook/node-logger": "6.4.14",
+    "@storybook/preset-create-react-app": "4.0.0",
+    "@storybook/react": "6.4.14",
+    "@testing-library/jest-dom": "5.16.1",
+    "@testing-library/react": "12.1.2",
+    "@testing-library/user-event": "13.5.0",
+    "@tsconfig/next": "1.0.1",
+    "@types/jest": "27.4.0",
+    "@types/node": "17.0.12",
+    "@types/react": "17.0.38",
+    "@types/react-dom": "17.0.11",
+    "eslint": "8.7.0",
+    "eslint-config-next": "12.0.8",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-config-react-app": "7.0.0",
+    "prettier": "2.5.1",
+    "typescript": "4.5.5"
+  }
+}
