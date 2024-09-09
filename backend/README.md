@@ -1,65 +1,65 @@
-# Getting Started ⚡️ Bolt for JavaScript
-> Slack app example from 📚 [Getting started with Bolt for JavaScript tutorial][1]
+# はじめに ⚡️ Bolt for JavaScript
+> 📚 [Bolt for JavaScript チュートリアルで始める][1] からのSlackアプリの例
 
-## Overview
+## 概要
 
-This is a Slack app built with the [Bolt for JavaScript framework][2] that showcases
-responding to events and interactive buttons.
+これは [Bolt for JavaScript フレームワーク][2] を使って構築されたSlackアプリで、
+イベントやインタラクティブボタンに応答するデモを示しています。
 
-## Running locally
+## ローカルでの実行
 
-### 0. Create a new Slack App
+### 0. 新しいSlackアプリを作成する
 
-- Go to https://api.slack.com/apps
-- Click **Create App**
-- Choose a workspace
-- Enter App Manifest using contents of `manifest.yaml`
-- Click **Create**
+- https://api.slack.com/apps にアクセス
+- **Create App** をクリック
+- ワークスペースを選択
+- `manifest.yaml` の内容を使用してApp Manifestを入力
+- **Create** をクリック
 
-Once the app is created click **Install to Workspace** 
-Then scroll down in Basic Info and click **Generate Token and Scopes** with both scopes
+アプリが作成されたら **Install to Workspace** をクリック
+次に Basic Info でスクロールダウンし、両方のスコープで **Generate Token and Scopes** をクリック
 
-### 1. Setup environment variables
+### 1. 環境変数を設定する
 
 ```zsh
-# Replace with your bot and app token
-export SLACK_BOT_TOKEN=<your-bot-token> # from the OAuth section
-export SLACK_APP_TOKEN=<your-app-level-token> # from the Basic Info App Token Section
+# あなたのボットとアプリのトークンに置き換えてください
+export SLACK_BOT_TOKEN=<your-bot-token> # OAuthセクションから
+export SLACK_APP_TOKEN=<your-app-level-token> # Basic InfoのApp Tokenセクションから
 ```
 
-### 2. Setup your local project
+### 2. ローカルプロジェクトを設定する
 
 ```zsh
-# Clone this project onto your machine
+# このプロジェクトをあなたのマシンにクローン
 git clone https://github.com/slackapi/bolt-js-getting-started-app.git
 
-# Change into the project
+# プロジェクトディレクトリに移動
 cd bolt-js-getting-started-app/
 
-# Install the dependencies
+# 依存関係をインストール
 npm install
 ```
 
-### 3. Start servers
+### 3. サーバーを起動する
 ```zsh
 npm run start
 ```
 
-### 4. Test
+### 4. テスト
 
-Go to the installed workspace and type **Hello** in a DM to your new bot. You can also type **Hello** in a channel where the bot is present
+インストールされたワークスペースに移動し、新しいボットにDMで **Hello** と入力してください。ボットが存在するチャンネルでも **Hello** と入力できます。
 
-## Contributing
+## コントリビューティング
 
-### Issues and questions
+### 問題および質問
 
-Found a bug or have a question about this project? We'd love to hear from you!
+このプロジェクトに関するバグを見つけましたか？質問がありますか？ぜひお聞かせください！
 
-1. Browse to [slackapi/bolt-js/issues][4]
-1. Create a new issue
-1. Select the `[x] examples` category
+1. [slackapi/bolt-js/issues][4] にアクセス
+1. 新しい問題を作成
+1. `[x] examples` カテゴリを選択
 
-See you there and thanks for helping to improve Bolt for everyone!
+そこでお会いしましょう。そして、Boltをみんなのために改善するお手伝いをありがとうございます！
 
 [1]: https://slack.dev/bolt-js/tutorial/getting-started
 [2]: https://slack.dev/bolt-js/
