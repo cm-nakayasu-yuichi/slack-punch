@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "type": "module",
+  "scripts": {
+    "test": "echo 'まだテストありません🥺'",
+    "dev": "tsx watch src/entrypoint/node.ts"
+  },
+  "devDependencies": {
+    "@hono/node-server": "^1.13.1",
+    "tsx": "^4.7.1"
+  },
+  "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.8.0",
+    "@aws-lambda-powertools/tracer": "^2.8.0",
+    "@aws-sdk/client-dynamodb": "^3.658.1",
+    "@aws-sdk/lib-dynamodb": "^3.658.1",
+    "@slack/web-api": "^7.5.0",
+    "date-fns": "^4.1.0",
+    "hono": "^4.6.3"
+  }
+}
