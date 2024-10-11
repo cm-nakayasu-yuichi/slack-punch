@@ -1,7 +1,8 @@
 // src/App.jsx
-import { AppBar, Toolbar, Typography, Box, Container } from '@mui/material';
+import { Typography, Box, Container } from '@mui/material';
 import PostCard from './features/articles/components/article/PostCard';
 import Header from './features/articles/components/common/Header';
+import AuthorCard from './features/articles/components/article/AuthorCard';
 
 const tweets = [
   {
@@ -53,10 +54,10 @@ function App() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header></Header>
-
-
       {/* Content */}
-      <Container sx={{ flex: 1, width: '100vw', p: 2 }}>
+      <Container sx={{ flex: 1, display: 'flex', width: '100vw', p: 2 }}>
+        {/* Left Column */}
+        <Box sx={{ flex: 7, pr: 2 }}>
         {tweets.map((tweet, index) => (
           <PostCard
             key={index}
@@ -66,6 +67,13 @@ function App() {
             date={tweet.date}
           />
         ))}
+        </Box>
+        <Box sx={{ flex: 3, pl: 2 }}>
+          <AuthorCard
+            avatarUrl='https://ca.slack-edge.com/E01LQBQK08Z-U05EZSE9YBC-63df5785534c-512'
+            username='森藤好大 ( morifuji koudai ) morimorikochan'
+          />  
+        </Box>
       </Container>
 
       {/* Footer */}
