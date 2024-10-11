@@ -1,16 +1,9 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  PutCommand,
-  ScanCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { Message } from "../service";
-import { safeParseFloat } from "../util/string";
-import { dateToISOString } from "../util/date";
-import { logger } from "../util/logger";
-
-const ddbClient = new DynamoDBClient({});
-const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
+import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { Message } from "./message.service";
+import { safeParseFloat } from "../_shared/util/string";
+import { dateToISOString } from "../_shared/util/date";
+import { logger } from "../_shared/util/logger";
+import { ddbDocClient } from "../_shared/storage/ddbClient";
 
 const TABLE_NAME = "SlackPunchMessage";
 

@@ -1,5 +1,7 @@
-import { app } from "..";
+import { createApp } from "..";
 import { serve } from "@hono/node-server";
+
+const app = await createApp();
 
 serve({
   ...app,

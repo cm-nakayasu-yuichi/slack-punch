@@ -1,4 +1,4 @@
-import { timestampToDate } from "./util/date";
+import { timestampToDate } from "../_shared/util/date";
 
 type Conversation = {
   channelName: string;
@@ -6,7 +6,7 @@ type Conversation = {
 type ConversationHistory = {
   messages: { text: string }[];
 };
-type User = {
+export type SlackUser = {
   id: string;
   profile: {
     name: string;
@@ -22,7 +22,7 @@ export type SlackClient = {
     channelId: string;
   }) => Promise<ConversationHistory>;
 
-  fetchUserByUserId: (option: { userId: string }) => Promise<User>;
+  fetchUserByUserId: (option: { userId: string }) => Promise<SlackUser>;
 };
 
 export const saveMessage = async (
