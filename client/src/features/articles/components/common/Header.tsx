@@ -15,7 +15,7 @@ function Header() {
   };
 
   return (
-    <AppBar>
+    <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <IconButton
