@@ -1,14 +1,21 @@
-import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
-import { Message } from "./message.service";
+import {
+  BatchGetCommand,
+  PutCommand,
+  ScanCommand,
+} from "@aws-sdk/lib-dynamodb";
+import { Message, MessageCompositeKey } from "./message.service";
 import { safeParseFloat } from "../_shared/util/string";
 import { dateToISOString } from "../_shared/util/date";
 import { logger } from "../_shared/util/logger";
 import { ddbDocClient } from "../_shared/storage/ddbClient";
+import { compareAsc, compareDesc } from "date-fns";
 
 const TABLE_NAME = "SlackPunchMessage";
 
 interface DynamoMessageItem {
+  // HashKey
   PostUserId: string;
+  // RangeKey
   Timestamp: number;
   PostUserName: string;
   PostUserImageUrl: string | null;
@@ -39,7 +46,23 @@ export const messageToDynamoMessageItem = (
   };
 };
 
-export const putMessageToStorage = async (message: Message) => {
+export const toDomainMessage = (message: DynamoMessageItem): Message => {
+  return {
+    postUserId: message.PostUserId,
+    timestamp: message.Timestamp.toString(),
+    postUserName: message.PostUserName,
+    postUserImageUrl: message.PostUserImageUrl,
+    channelId: message.ChannelId,
+    channelName: message.ChannelName,
+    postedDate: new Date(message.PostedDate),
+    message: message.Message,
+    blownDate: new Date(message.BlownDate),
+    blowUserName: message.BlowUserName,
+    blowUserId: message.BlowUserId,
+  };
+};
+
+export const saveMessageToStorage = async (message: Message) => {
   try {
     const params = {
       TableName: TABLE_NAME,
@@ -57,10 +80,43 @@ export const putMessageToStorage = async (message: Message) => {
  * FIXME: 1MBを超えると全件取得できないので修正する
  * FIXME: 返却する方がanyのままなのでzodなど使って修正する
  */
-export const getAllMessageFromStorage = async () => {
+export const getAllMessages = async () => {
   const params = {
     TableName: TABLE_NAME,
   };
   const result = await ddbDocClient.send(new ScanCommand(params));
-  return result.Items;
+  return result.Items?.map((item) =>
+    toDomainMessage(item as DynamoMessageItem)
+  ).toSorted((a, b) => {
+    return compareDesc(a.postedDate, b.postedDate);
+  });
+};
+
+export const getMessagesByIdList = async (
+  messageIdList: MessageCompositeKey[]
+) => {
+  const keyList = messageIdList.map((messageId) => {
+    const [postUserId, timestamp] = messageId.split("/");
+    return {
+      PostUserId: postUserId,
+      Timestamp: safeParseFloat(timestamp),
+    };
+  });
+  const result = await ddbDocClient.send(
+    new BatchGetCommand({
+      RequestItems: {
+        [TABLE_NAME]: {
+          Keys: keyList,
+        },
+      },
+    })
+  );
+  if (result.Responses === undefined) {
+    throw new Error();
+  }
+  return result.Responses.[TABLE_NAME].map((item) =>
+    toDomainMessage(item as DynamoMessageItem)
+  ).toSorted((a, b) => {
+    return compareDesc(a.postedDate, b.postedDate);
+  });
 };

@@ -22,6 +22,7 @@ const IdTokenSchema = z.object({
     sub: z.string().min(1),
     exp: z.number().min(1),
     nonce: z.string().min(1),
+    "https://slack.com/team_id": z.string().min(1),
   }),
 });
 
@@ -45,7 +46,7 @@ export const authenticate = async (code: string, state: string) => {
   }
 
   const payload = {
-    sub: user.userId,
+    sub: user.slackUserId,
     role: "user",
     exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
   };
@@ -79,6 +80,13 @@ const getSlackUserByCode = async (
   if (validatedIdToken.payload.nonce !== authState.nonce) {
     throw new UnauthorizedError();
   }
+  if (
+    !slackAuth.teamList.includes(
+      validatedIdToken.payload["https://slack.com/team_id"]
+    )
+  ) {
+    throw new UnauthorizedError();
+  }
 
   const userId = validatedIdToken.payload.sub;
 
@@ -89,12 +97,11 @@ const getSlackUserByCode = async (
 };
 
 const generateUser = async (slackUser: SlackUser) => {
-  const uuid = crypto.randomUUID();
   const user = {
-    userId: uuid,
     slackUserId: slackUser.id,
     displayUserName: slackUser.profile.name,
     userImage: slackUser.profile.image,
+    registeredDate: new Date(),
   };
   await putUserToStorage(user);
   return user;

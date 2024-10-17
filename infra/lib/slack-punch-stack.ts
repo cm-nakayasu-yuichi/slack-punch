@@ -2,10 +2,8 @@ import * as cdk from "aws-cdk-lib";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
-import { Stack } from "aws-cdk-lib";
 
 export class SlackPunchStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -59,19 +57,12 @@ export class SlackPunchStack extends cdk.Stack {
 
     const tableUser = new dynamodb.Table(this, "UserTable", {
       partitionKey: {
-        name: "UserId",
+        name: "SlackUserId",
         type: dynamodb.AttributeType.STRING,
       },
       tableName: "SlackPunchUser",
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    });
-    tableUser.addGlobalSecondaryIndex({
-      indexName: "SlackUserIdIndex",
-      partitionKey: {
-        name: "SlackUserId",
-        type: dynamodb.AttributeType.STRING,
-      },
     });
     tableUser.grantReadWriteData(backend);
 
@@ -85,5 +76,16 @@ export class SlackPunchStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
     tableAuthState.grantReadWriteData(backend);
+
+    const tableMatome = new dynamodb.Table(this, "MatomeTable", {
+      partitionKey: {
+        name: "Id",
+        type: dynamodb.AttributeType.STRING,
+      },
+      tableName: "SlackPunchMatome",
+      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+    tableMatome.grantReadWriteData(backend);
   }
 }

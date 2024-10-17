@@ -1,22 +1,32 @@
-import { PutCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddbDocClient } from "../_shared/storage/ddbClient";
 import { User } from "./user.service";
+import { dateToISOString } from "../_shared/util/date";
 
 const TABLE_NAME = "SlackPunchUser";
 
 interface StorageUser {
-  UserId: string;
   SlackUserId: string;
   UserImage: string | null;
   DisplayUserName: string;
+  RegisteredDate: string;
 }
 
 export const toStorageUser = (user: User): StorageUser => {
   return {
-    UserId: user.userId,
     SlackUserId: user.slackUserId,
     UserImage: user.userImage,
     DisplayUserName: user.displayUserName,
+    RegisteredDate: dateToISOString(user.registeredDate),
+  };
+};
+
+export const toDomainUser = (user: StorageUser): User => {
+  return {
+    slackUserId: user.SlackUserId,
+    userImage: user.UserImage,
+    displayUserName: user.DisplayUserName,
+    registeredDate: new Date(user.RegisteredDate),
   };
 };
 
@@ -29,43 +39,12 @@ export const putUserToStorage = async (user: User) => {
 };
 
 export const findUserBySlackUserId = async (
-  slackUserId: string
-): Promise<User | null> => {
-  const command = new QueryCommand({
-    TableName: TABLE_NAME,
-    IndexName: "SlackUserIdIndex",
-    KeyConditionExpression: "SlackUserId = :slackUserId",
-    ExpressionAttributeValues: {
-      ":slackUserId": slackUserId,
-    },
-  });
-  const { Items } = await ddbDocClient.send(command);
-  if (!Items || Items.length === 0) {
-    return null;
-  }
-  if (Items.length > 1) {
-    throw new Error("同じユーザーIDが2ユーザー以上存在しています", {
-      cause: {
-        Items,
-      },
-    });
-  }
-
-  return {
-    userId: Items[0].UserId,
-    slackUserId: Items[0].SlackUserId,
-    userImage: Items[0].UserImage,
-    displayUserName: Items[0].DisplayUserName,
-  };
-};
-
-export const findUserByUserId = async (
   userId: string
 ): Promise<User | null> => {
   const command = new GetCommand({
     TableName: TABLE_NAME,
     Key: {
-      UserId: userId,
+      SlackUserId: userId,
     },
   });
   const { Item } = await ddbDocClient.send(command);
@@ -73,10 +52,17 @@ export const findUserByUserId = async (
     return null;
   }
 
-  return {
-    userId: Item.UserId,
-    slackUserId: Item.SlackUserId,
-    userImage: Item.UserImage,
-    displayUserName: Item.DisplayUserName,
-  };
+  return toDomainUser(Item as StorageUser);
+};
+
+export const findAllUsers = async () => {
+  const command = new ScanCommand({
+    TableName: TABLE_NAME,
+  });
+  const { Items } = await ddbDocClient.send(command);
+  if (!Items) {
+    throw new Error("取得できませんでした");
+  }
+
+  return Items.map((item) => toDomainUser(item as StorageUser));
 };

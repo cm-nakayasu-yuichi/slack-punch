@@ -2,8 +2,8 @@ import { Context, Hono, MiddlewareHandler } from "hono";
 import { ReactionAddedEvent, WebClient } from "@slack/web-api";
 import { saveMessage } from "./message/message.service";
 import {
-  getAllMessageFromStorage,
-  putMessageToStorage,
+  getAllMessages,
+  saveMessageToStorage,
 } from "./message/message.storage";
 import { logger } from "./_shared/util/logger";
 import { generateSlackClient, getIdToken } from "./_shared/storage/slackClient";
@@ -11,20 +11,24 @@ import { Debugger } from "./debugViewer";
 import { parameterClient } from "./_shared/storage/parameterClient";
 import { secureHeaders } from "hono/secure-headers";
 import { HTTPException } from "hono/http-exception";
-import {
-  authenticate,
-  startAuthenticationFlow,
-} from "./user/auth/auth.service";
 import { UnauthorizedError } from "./_shared/errors";
 import { jwt } from "hono/jwt";
-import { findUserByUserId } from "./user/user.storage";
+import { findAllUsers, findUserBySlackUserId } from "./user/user.storage";
+import { registerHandlerMessage } from "./message/message.handler";
+import { getAllMatomes } from "./matome/matome.storage";
+import { registerHandlerUserAuth } from "./user/auth/auth.handler";
+import { registerHandlerMatome } from "./matome/matome.handler";
 
 export const createApp = async () => {
-  const [slackClientData, jwtSecretKey, basicAuth] = await Promise.all([
-    parameterClient.fetchSlackAuthData(),
+  const [jwtSecretKey, basicAuth] = await Promise.all([
     parameterClient.fetchJwtSecretKey(),
     parameterClient.fetchBasicAuthCredential(),
   ]);
+
+  const jwtAuth = jwt({
+    secret: jwtSecretKey,
+    alg: "HS512",
+  });
 
   const app = new Hono();
 
@@ -60,33 +64,6 @@ export const createApp = async () => {
     }
   });
 
-  app.get("/oauth/authorize", async (c) => {
-    const authState = await startAuthenticationFlow();
-    return c.redirect(
-      "https://slack.com/openid/connect/authorize?" +
-        "response_type=code" +
-        "&scope=openid" +
-        `&client_id=${slackClientData.clientId}` +
-        `&state=${authState.state}` +
-        // FIXME: 秘匿情報
-        `&team=${slackClientData.team}` +
-        `&nonce=${authState.nonce}` +
-        `&redirect_uri=${slackClientData.redirectUrl}`
-    );
-  });
-
-  app.get("/oauth/callback", async (c) => {
-    const code = c.req.query("code");
-    const state = c.req.query("state");
-    if (code === undefined || state === undefined) {
-      throw new UnauthorizedError();
-    }
-
-    const { user, token } = await authenticate(code, state);
-
-    return c.json({ user, token });
-  });
-
   app.get(
     "/me",
     jwt({
@@ -95,11 +72,17 @@ export const createApp = async () => {
     }),
     async (c) => {
       const payload: { sub: string } = c.get("jwtPayload");
-      const user = await findUserByUserId(payload.sub);
+      const user = await findUserBySlackUserId(payload.sub);
 
       return c.json({ user });
     }
   );
+
+  await registerHandlerMessage(app, {
+    jwtAuth,
+  });
+  await registerHandlerUserAuth(app);
+  await registerHandlerMatome(app, { jwtAuth });
 
   /**
    * TODO: なぜかHonoのBASIC認証がうまくいかない
@@ -116,9 +99,13 @@ export const createApp = async () => {
   };
 
   app.get("/debug", customAuthMiddleware, async (c) => {
-    const messages = await getAllMessageFromStorage();
+    const messages = await getAllMessages();
+    const matomes = await getAllMatomes();
+    const users = await findAllUsers();
     logger.info("メッセージを全件取得しました", { messages });
-    return c.html(<Debugger messages={messages ?? []} />);
+    return c.html(
+      <Debugger messages={messages ?? []} matomes={matomes} users={users} />
+    );
   });
 
   app.onError((err) => {
@@ -150,6 +137,6 @@ const handleReactionAdded = async (c: Context, event: ReactionAddedEvent) => {
     event.item_user,
     event.user
   );
-  await putMessageToStorage(message);
+  await saveMessageToStorage(message);
   return c.json({ result: "ok" });
 };

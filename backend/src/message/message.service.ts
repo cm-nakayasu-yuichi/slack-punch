@@ -1,5 +1,7 @@
 import { timestampToDate } from "../_shared/util/date";
 
+export type MessageCompositeKey = `${string}/${string}`;
+
 type Conversation = {
   channelName: string;
 };
