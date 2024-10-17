@@ -1,4 +1,7 @@
 import { handle } from "hono/aws-lambda";
-import { app } from "..";
+import { createApp } from "..";
 
-export const handler = handle(app);
+export const handler = async () => {
+  const app = await createApp();
+  return handle(app);
+};

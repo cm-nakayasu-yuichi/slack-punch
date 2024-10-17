@@ -11,11 +11,15 @@
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.8.0",
+    "@aws-lambda-powertools/parameters": "^2.8.0",
     "@aws-lambda-powertools/tracer": "^2.8.0",
     "@aws-sdk/client-dynamodb": "^3.658.1",
+    "@aws-sdk/client-secrets-manager": "^3.664.0",
     "@aws-sdk/lib-dynamodb": "^3.658.1",
+    "@hono/zod-validator": "^0.4.1",
     "@slack/web-api": "^7.5.0",
     "date-fns": "^4.1.0",
-    "hono": "^4.6.3"
+    "hono": "^4.6.3",
+    "zod": "^3.23.8"
   }
 }
