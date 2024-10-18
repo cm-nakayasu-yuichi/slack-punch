@@ -3,9 +3,8 @@ import { Matome } from "./matome.service";
 import { dateToISOString } from "../_shared/util/date";
 import { logger } from "../_shared/util/logger";
 import { ddbDocClient } from "../_shared/storage/ddbClient";
-import { GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { compareDesc } from "date-fns";
-import { MessageCompositeKey } from "../message/message.service";
+import { MessageCompositeKey } from "../message/message.entity";
 
 const TABLE_NAME = "SlackPunchMatome";
 

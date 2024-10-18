@@ -1,7 +1,5 @@
 import { timestampToDate } from "../_shared/util/date";
 
-export type MessageCompositeKey = `${string}/${string}`;
-
 type Conversation = {
   channelName: string;
 };
@@ -72,5 +70,3 @@ export const saveMessage = async (
   };
   return message;
 };
-
-export type Message = Awaited<ReturnType<typeof saveMessage>>;

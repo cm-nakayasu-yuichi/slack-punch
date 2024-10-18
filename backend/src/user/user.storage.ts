@@ -1,6 +1,6 @@
 import { PutCommand, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { ddbDocClient } from "../_shared/storage/ddbClient";
-import { User } from "./user.service";
+import { User } from "./user.entity";
 import { dateToISOString } from "../_shared/util/date";
 
 const TABLE_NAME = "SlackPunchUser";

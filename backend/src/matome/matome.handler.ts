@@ -25,7 +25,7 @@ export const registerHandlerMatome = (
               .string()
               .and(
                 z.custom<`${string}/${string}`>((val) =>
-                  /^\s+\/\s+$/g.test(val as string)
+                  /^\S+\/[0-9\.]+$/g.test(val as string)
                 )
               )
           )

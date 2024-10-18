@@ -15,9 +15,9 @@ import { UnauthorizedError } from "./_shared/errors";
 import { jwt } from "hono/jwt";
 import { findAllUsers, findUserBySlackUserId } from "./user/user.storage";
 import { registerHandlerMessage } from "./message/message.handler";
-import { getAllMatomes } from "./matome/matome.storage";
 import { registerHandlerUserAuth } from "./user/auth/auth.handler";
 import { registerHandlerMatome } from "./matome/matome.handler";
+import { getAllMatomes } from "./matome/matome.storage";
 
 export const createApp = async () => {
   const [jwtSecretKey, basicAuth] = await Promise.all([
