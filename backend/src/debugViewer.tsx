@@ -1,7 +1,7 @@
 import { PropsWithChildren } from "hono/jsx";
-import { Message } from "./message/message.service";
+import { User } from "./user/user.entity";
 import { Matome } from "./matome/matome.service";
-import { User } from "./user/user.service";
+import { Message } from "./message/message.entity";
 
 const Layout = (props: PropsWithChildren<{}>) => {
   return (

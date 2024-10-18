@@ -3,12 +3,16 @@ import {
   PutCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
-import { Message, MessageCompositeKey } from "./message.service";
 import { safeParseFloat } from "../_shared/util/string";
 import { dateToISOString } from "../_shared/util/date";
 import { logger } from "../_shared/util/logger";
 import { ddbDocClient } from "../_shared/storage/ddbClient";
-import { compareAsc, compareDesc } from "date-fns";
+import { compareDesc } from "date-fns";
+import {
+  decodeFromCompositeKey,
+  Message,
+  MessageCompositeKey,
+} from "./message.entity";
 
 const TABLE_NAME = "SlackPunchMessage";
 
@@ -96,7 +100,7 @@ export const getMessagesByIdList = async (
   messageIdList: MessageCompositeKey[]
 ) => {
   const keyList = messageIdList.map((messageId) => {
-    const [postUserId, timestamp] = messageId.split("/");
+    const { postUserId, timestamp } = decodeFromCompositeKey(messageId);
     return {
       PostUserId: postUserId,
       Timestamp: safeParseFloat(timestamp),
@@ -114,7 +118,7 @@ export const getMessagesByIdList = async (
   if (result.Responses === undefined) {
     throw new Error();
   }
-  return result.Responses.[TABLE_NAME].map((item) =>
+  return result.Responses[TABLE_NAME].map((item) =>
     toDomainMessage(item as DynamoMessageItem)
   ).toSorted((a, b) => {
     return compareDesc(a.postedDate, b.postedDate);

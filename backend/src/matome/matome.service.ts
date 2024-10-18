@@ -1,5 +1,4 @@
-import { timestampToDate } from "../_shared/util/date";
-import { MessageCompositeKey } from "../message/message.service";
+import { MessageCompositeKey } from "../message/message.entity";
 import { getMessagesByIdList } from "../message/message.storage";
 import {
   getAllMatomes,
