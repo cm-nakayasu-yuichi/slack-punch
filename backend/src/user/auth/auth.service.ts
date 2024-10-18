@@ -10,6 +10,7 @@ import { SlackUser } from "../../message/message.service";
 import crypto from "crypto";
 import { UnauthorizedError } from "../../_shared/errors";
 import { findByState, putAuthStateToStorage } from "./auth.storage";
+import { logger } from "../../_shared/util/logger";
 
 const IdTokenSchema = z.object({
   // NOTE: https://slack.com/openid/connect/keys
@@ -48,7 +49,7 @@ export const authenticate = async (code: string, state: string) => {
   const payload = {
     sub: user.slackUserId,
     role: "user",
-    exp: Math.floor(Date.now() / 1000) + 60 * 5, // Token expires in 5 minutes
+    exp: Math.floor(Date.now() / 1000) + 60 * 30, // Token expires in 30 minutes
   };
   const jwtSecret = await parameterClient.fetchJwtSecretKey();
   const token = await sign(payload, jwtSecret, "HS512");
@@ -74,6 +75,8 @@ const getSlackUserByCode = async (
     throw new UnauthorizedError();
   }
 
+  logger.debug("`id_token`などを取得しました", { response });
+
   const idToken = await decode(response.id_token);
   const validatedIdToken = IdTokenSchema.parse(idToken);
 
@@ -90,7 +93,7 @@ const getSlackUserByCode = async (
 
   const userId = validatedIdToken.payload.sub;
 
-  const slackClient = generateSlackClient(response.access_token!);
+  const slackClient = generateSlackClient(slackAuth.botToken);
   const user = await slackClient.fetchUserByUserId({ userId });
 
   return user;

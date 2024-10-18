@@ -89,6 +89,9 @@ export const getAllMessages = async () => {
     TableName: TABLE_NAME,
   };
   const result = await ddbDocClient.send(new ScanCommand(params));
+  if (result.Items === undefined) {
+    throw new Error("取得できませんでした");
+  }
   return result.Items?.map((item) =>
     toDomainMessage(item as DynamoMessageItem)
   ).toSorted((a, b) => {
@@ -118,9 +121,9 @@ export const getMessagesByIdList = async (
   if (result.Responses === undefined) {
     throw new Error();
   }
+  // 並び替えはしない
+  // FIXME: 取得できなかった要素が`UnprocessedKeys`に入るので、それを元によしなに扱う
   return result.Responses[TABLE_NAME].map((item) =>
     toDomainMessage(item as DynamoMessageItem)
-  ).toSorted((a, b) => {
-    return compareDesc(a.postedDate, b.postedDate);
-  });
+  );
 };

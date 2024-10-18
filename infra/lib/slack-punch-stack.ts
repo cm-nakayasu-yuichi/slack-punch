@@ -13,6 +13,7 @@ export class SlackPunchStack extends cdk.Stack {
       entry: "../backend/src/entrypoint/lambda.ts",
       functionName: "SlackPunchBackend",
       handler: "handler",
+      runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
     });
     backend.addToRolePolicy(
       new iam.PolicyStatement({
