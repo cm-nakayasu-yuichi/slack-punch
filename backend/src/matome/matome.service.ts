@@ -1,5 +1,6 @@
 import { MessageCompositeKey } from "../message/message.entity";
 import { getMessagesByIdList } from "../message/message.storage";
+import { User } from "../user/user.entity";
 import {
   getAllMatomes,
   getMatomeById,
@@ -10,7 +11,7 @@ export type Matome = {
   id: string;
   title: string;
   description: string;
-  createdUserId: string;
+  createdUser: User;
   messageIdList: MessageCompositeKey[];
   createdDate: Date;
 };

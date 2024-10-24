@@ -8,6 +8,7 @@ const SlackAuthSchema = z.object({
   botToken: z.string().min(1),
   mainTeamId: z.string().min(1),
   teamList: z.array(z.string().min(1)),
+  signingSecret: z.string().min(1),
 });
 export type SlackAuth = z.infer<typeof SlackAuthSchema>;
 

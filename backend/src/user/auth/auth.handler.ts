@@ -1,5 +1,5 @@
 import { Hono, MiddlewareHandler } from "hono";
-import { parameterClient } from "../../_shared/storage/parameterClient";
+import { parameterClient } from "../../_shared/client/parameterClient";
 import { authenticate, startAuthenticationFlow } from "./auth.service";
 import { UnauthorizedError } from "../../_shared/errors";
 
@@ -27,8 +27,8 @@ export const registerHandlerUserAuth = async (app: Hono) => {
       throw new UnauthorizedError();
     }
 
-    const { user, token } = await authenticate(code, state);
+    const { token } = await authenticate(code, state);
 
-    return c.json({ user, token });
+    return c.json({ token });
   });
 };

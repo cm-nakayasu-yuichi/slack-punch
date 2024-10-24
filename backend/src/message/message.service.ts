@@ -1,28 +1,11 @@
+import { SlackClient } from "../_shared/client/slackClient";
 import { timestampToDate } from "../_shared/util/date";
 
-type Conversation = {
+export type Conversation = {
   channelName: string;
 };
-type ConversationHistory = {
-  messages: { text: string }[];
-};
-export type SlackUser = {
-  id: string;
-  profile: {
-    name: string;
-    image: string | null;
-  };
-};
-
-export type SlackClient = {
-  fetchConversationById: (option: {
-    channelId: string;
-  }) => Promise<Conversation>;
-  fetchConversationHistory: (option: {
-    channelId: string;
-  }) => Promise<ConversationHistory>;
-
-  fetchUserByUserId: (option: { userId: string }) => Promise<SlackUser>;
+export type SlackMessage = {
+  text: string;
 };
 
 export const saveMessage = async (
@@ -37,13 +20,10 @@ export const saveMessage = async (
   const conversation = await slackClient.fetchConversationById({ channelId });
 
   // メッセージ情報取得
-  const history = await slackClient.fetchConversationHistory({
+  const slackMessage = await slackClient.fetchMessage({
     channelId,
+    timestamp,
   });
-
-  if (history.messages.length === 0) {
-    throw new Error("message is not found.");
-  }
 
   // 投稿ユーザ情報の取得
   const postUser = await slackClient.fetchUserByUserId({
@@ -59,7 +39,7 @@ export const saveMessage = async (
     channelId,
     timestamp,
     channelName: conversation.channelName,
-    message: history.messages[0].text,
+    message: slackMessage.text,
     postedDate: timestampToDate(timestamp),
     postUserId: postUser.id,
     postUserName: postUser.profile.name,

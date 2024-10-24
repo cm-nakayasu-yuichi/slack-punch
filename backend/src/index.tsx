@@ -6,24 +6,29 @@ import {
   saveMessageToStorage,
 } from "./message/message.storage";
 import { logger } from "./_shared/util/logger";
-import { generateSlackClient, getIdToken } from "./_shared/storage/slackClient";
+import {
+  generateSlackClient,
+  getIdToken,
+  verifySigning as verifySignature,
+} from "./_shared/client/slackClient";
 import { Debugger } from "./debugViewer";
-import { parameterClient } from "./_shared/storage/parameterClient";
+import { parameterClient } from "./_shared/client/parameterClient";
 import { secureHeaders } from "hono/secure-headers";
 import { HTTPException } from "hono/http-exception";
 import { UnauthorizedError } from "./_shared/errors";
 import { jwt } from "hono/jwt";
-import { findAllUsers, findUserBySlackUserId } from "./user/user.storage";
 import { registerHandlerMessage } from "./message/message.handler";
 import { registerHandlerUserAuth } from "./user/auth/auth.handler";
 import { registerHandlerMatome } from "./matome/matome.handler";
 import { getAllMatomes } from "./matome/matome.storage";
 
 export const createApp = async () => {
-  const [jwtSecretKey, basicAuth] = await Promise.all([
-    parameterClient.fetchJwtSecretKey(),
-    parameterClient.fetchBasicAuthCredential(),
-  ]);
+  const [jwtSecretKey, basicAuth, { signingSecret: slackSigningSecret }] =
+    await Promise.all([
+      parameterClient.fetchJwtSecretKey(),
+      parameterClient.fetchBasicAuthCredential(),
+      parameterClient.fetchSlackAuthData(),
+    ]);
 
   const jwtAuth = jwt({
     secret: jwtSecretKey,
@@ -40,9 +45,18 @@ export const createApp = async () => {
 
   app.post("/", async (c) => {
     const slackEvent = await c.req.json();
-    logger.info("イベントを受け取りました", { slackEvent });
+    logger.debug("イベントを受け取りました", { slackEvent });
+
+    verifySignature({
+      rawBody: await c.req.text(),
+      signingSecret: slackSigningSecret,
+      signature: c.req.header("x-slack-signature") || "",
+      timestamp: c.req.header("x-slack-request-timestamp") || "",
+    });
+
     switch (slackEvent.type) {
       case "url_verification": {
+        logger.debug("url_verificationのリクエストを受け取りました");
         return c.json({ challenge: slackEvent.challenge });
       }
       case "event_callback": {
@@ -63,20 +77,6 @@ export const createApp = async () => {
       }
     }
   });
-
-  app.get(
-    "/me",
-    jwt({
-      secret: jwtSecretKey,
-      alg: "HS512",
-    }),
-    async (c) => {
-      const payload: { sub: string } = c.get("jwtPayload");
-      const user = await findUserBySlackUserId(payload.sub);
-
-      return c.json({ user });
-    }
-  );
 
   await registerHandlerMessage(app, {
     jwtAuth,
@@ -101,11 +101,9 @@ export const createApp = async () => {
   app.get("/debug", customAuthMiddleware, async (c) => {
     const messages = await getAllMessages();
     const matomes = await getAllMatomes();
-    const users = await findAllUsers();
-    logger.info("メッセージを全件取得しました", { messages });
-    return c.html(
-      <Debugger messages={messages ?? []} matomes={matomes} users={users} />
-    );
+    logger.debug("メッセージを全件取得しました", { messages });
+    logger.debug("まとめを全件取得しました", { matomes });
+    return c.html(<Debugger messages={messages ?? []} matomes={matomes} />);
   });
 
   app.onError((err) => {

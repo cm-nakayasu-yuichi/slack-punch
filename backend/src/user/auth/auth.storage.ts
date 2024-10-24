@@ -1,5 +1,5 @@
 import { PutCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { ddbDocClient } from "../../_shared/storage/ddbClient";
+import { ddbDocClient } from "../../_shared/client/ddbClient";
 import { AuthState } from "./auth.service";
 
 const TABLE_NAME = "SlackPunchAuthState";

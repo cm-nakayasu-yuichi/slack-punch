@@ -1,5 +1,4 @@
 import { PropsWithChildren } from "hono/jsx";
-import { User } from "./user/user.entity";
 import { Matome } from "./matome/matome.service";
 import { Message } from "./message/message.entity";
 
@@ -14,16 +13,11 @@ const Layout = (props: PropsWithChildren<{}>) => {
   );
 };
 
-export const Debugger = (props: {
-  messages: Message[];
-  matomes: Matome[];
-  users: User[];
-}) => {
+export const Debugger = (props: { messages: Message[]; matomes: Matome[] }) => {
   return (
     <Layout>
       <MessageList messages={props.messages} />;
       <MatomeList matomes={props.matomes} />;
-      <UserList users={props.users} />
     </Layout>
   );
 };
@@ -80,29 +74,6 @@ export const MatomeList = (props: { matomes: Matome[] }) => {
         </div>
       </div>
       <a href="/debug/createMatome">適当にまとめを作成する</a>
-    </>
-  );
-};
-
-export const UserList = (props: { users: User[] }) => {
-  return (
-    <>
-      <h3>ユーザー。件数: {props.users.length}件</h3>
-      <div style={{ display: "flex" }}>
-        <div>
-          {props.users.map((user) => {
-            return (
-              <div>
-                <h4>{user.displayUserName}</h4>
-                <p>{user.slackUserId}</p>
-                <img src={user.userImage ?? ""} />
-                <code>{JSON.stringify(user)}</code>
-                <hr />
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </>
   );
 };

@@ -2,6 +2,7 @@ import { Hono, MiddlewareHandler } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { createMatome, getMatome, getMatomeList } from "./matome.service";
+import { decodeFromJwtPayload } from "../user/user.helper";
 
 export const registerHandlerMatome = (
   app: Hono,
@@ -34,11 +35,12 @@ export const registerHandlerMatome = (
     ),
     async (c) => {
       const validatedRequestBody = c.req.valid("json");
-      const payload: { sub: string } = c.get("jwtPayload");
+      const payload = c.get("jwtPayload");
+      const user = decodeFromJwtPayload(payload);
 
       const matome = await createMatome({
         ...validatedRequestBody,
-        createdUserId: payload.sub,
+        createdUser: user,
       });
       return c.json({ matome });
     }
@@ -52,7 +54,7 @@ export const registerHandlerMatome = (
   app.get("/matome/:matomeId", jwtAuth, async (c) => {
     const matomeId = c.req.param("matomeId");
     const matome = await getMatome(matomeId);
-    return c.json({ matome });
+    return c.json(matome);
   });
 
   app.get("/debug/createMatome", async (c) => {
@@ -63,7 +65,13 @@ export const registerHandlerMatome = (
         "U07PKSCF18W/1727835831.532679",
         "U07PPKB0005/1727832976.662479",
       ],
-      createdUserId: "U07PKSCF18W",
+      createdUser: {
+        id: "U00TESTTEST",
+        profile: {
+          name: "テスト太郎",
+          image: "https://example.com/image.png",
+        },
+      },
     });
     return c.redirect("/debug");
   });

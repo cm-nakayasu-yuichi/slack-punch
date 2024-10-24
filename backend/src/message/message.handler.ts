@@ -1,5 +1,4 @@
 import { Hono, MiddlewareHandler } from "hono";
-import { timestampToDate } from "../_shared/util/date";
 import { getAllMessages } from "./message.storage";
 
 export const registerHandlerMessage = (
