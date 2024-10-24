@@ -2,8 +2,8 @@ import { decode, sign, verify } from "hono/jwt";
 import {
   generateSlackClient,
   getIdToken,
-} from "../../_shared/storage/slackClient";
-import { parameterClient } from "../../_shared/storage/parameterClient";
+} from "../../_shared/client/slackClient";
+import { parameterClient } from "../../_shared/client/parameterClient";
 import { z } from "zod";
 import crypto from "crypto";
 import { UnauthorizedError } from "../../_shared/errors";

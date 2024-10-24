@@ -10,9 +10,9 @@ import {
   generateSlackClient,
   getIdToken,
   verifySigning as verifySignature,
-} from "./_shared/storage/slackClient";
+} from "./_shared/client/slackClient";
 import { Debugger } from "./debugViewer";
-import { parameterClient } from "./_shared/storage/parameterClient";
+import { parameterClient } from "./_shared/client/parameterClient";
 import { secureHeaders } from "hono/secure-headers";
 import { HTTPException } from "hono/http-exception";
 import { UnauthorizedError } from "./_shared/errors";

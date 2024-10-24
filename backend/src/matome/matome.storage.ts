@@ -2,7 +2,7 @@ import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { Matome } from "./matome.service";
 import { dateToISOString } from "../_shared/util/date";
 import { logger } from "../_shared/util/logger";
-import { ddbDocClient } from "../_shared/storage/ddbClient";
+import { ddbDocClient } from "../_shared/client/ddbClient";
 import { compareDesc } from "date-fns";
 import { MessageCompositeKey } from "../message/message.entity";
 

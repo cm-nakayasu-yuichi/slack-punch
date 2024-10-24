@@ -1,5 +1,5 @@
 import { Hono, MiddlewareHandler } from "hono";
-import { parameterClient } from "../../_shared/storage/parameterClient";
+import { parameterClient } from "../../_shared/client/parameterClient";
 import { authenticate, startAuthenticationFlow } from "./auth.service";
 import { UnauthorizedError } from "../../_shared/errors";
 

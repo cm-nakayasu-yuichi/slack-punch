@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { WebClient } from "@slack/web-api";
 import { Conversation, SlackMessage } from "../../message/message.service";
-import { logger } from "../../_shared/util/logger";
+import { logger } from "../util/logger";
 import { parameterClient, SlackAuth } from "./parameterClient";
 import { differenceInMinutes } from "date-fns";
 import { User } from "../../user/user.entity";

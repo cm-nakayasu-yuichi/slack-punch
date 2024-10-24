@@ -1,4 +1,4 @@
-import { SlackClient } from "../_shared/storage/slackClient";
+import { SlackClient } from "../_shared/client/slackClient";
 import { timestampToDate } from "../_shared/util/date";
 
 export type Conversation = {
