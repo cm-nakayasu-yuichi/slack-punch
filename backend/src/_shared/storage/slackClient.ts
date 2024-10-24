@@ -1,7 +1,22 @@
+import crypto from "crypto";
 import { WebClient } from "@slack/web-api";
-import { SlackClient } from "../../message/message.service";
+import { Conversation, SlackMessage } from "../../message/message.service";
 import { logger } from "../../_shared/util/logger";
 import { parameterClient, SlackAuth } from "./parameterClient";
+import { differenceInMinutes } from "date-fns";
+import { User } from "../../user/user.entity";
+
+export type SlackClient = {
+  fetchConversationById: (option: {
+    channelId: string;
+  }) => Promise<Conversation>;
+  fetchMessage: (option: {
+    channelId: string;
+    timestamp: string;
+  }) => Promise<SlackMessage>;
+
+  fetchUserByUserId: (option: { userId: string }) => Promise<User>;
+};
 
 export const generateSlackClient = (token: string) => {
   const web = new WebClient(token);
@@ -23,30 +38,83 @@ export const generateSlackClient = (token: string) => {
         channelName: conversation.channel.name,
       };
     },
-    fetchConversationHistory: async ({ channelId }) => {
-      const history = await web.conversations.history({
-        channel: channelId,
-      });
-      logger.info("historyを取得しました", { history });
-      if (history === undefined) {
-        throw new Error("履歴が取得できませんでした");
-      }
-      if (history.messages === undefined) {
-        throw new Error("メッセージが取得できませんでした");
-      }
-      if (
-        history.messages.some(
-          (messageElement) => messageElement.text === undefined
-        )
-      ) {
-        logger.error("`history.messages`", {
-          "history.messages": history.messages,
+    fetchMessage: async ({ channelId, timestamp }) => {
+      const fetchFromHistory = async () => {
+        const history = await web.conversations.history({
+          channel: channelId,
+          latest: timestamp,
+          inclusive: true,
+          limit: 1,
         });
-        throw new Error("メッセージにundefinedが含まれています");
-      }
-      return {
-        messages: history.messages as { text: string }[],
+        logger.debug("historyMessageを取得しました", { history });
+        if (
+          history === undefined ||
+          history.messages === undefined ||
+          history.messages.length === 0
+        ) {
+          throw new Error("historyMessageが取得できませんでした", {
+            cause: history,
+          });
+        }
+
+        if (history.messages[0].ts !== timestamp) {
+          throw new Error("取得できたhistoryMessageのtimestampが一致しません", {
+            cause: {
+              historyTimestamp: history.messages[0].ts,
+              timestamp,
+            },
+          });
+        }
+
+        return history.messages[0];
       };
+
+      const fetchFromReplies = async () => {
+        const replyMessage = await web.conversations.replies({
+          channel: channelId,
+          ts: timestamp,
+          limit: 1,
+        });
+        logger.debug("replyMessageを取得しました", { replyMessage });
+        if (
+          replyMessage === undefined ||
+          replyMessage.messages === undefined ||
+          replyMessage.messages.length === 0
+        ) {
+          throw new Error("replyMessageが取得できませんでした", {
+            cause: replyMessage,
+          });
+        }
+
+        if (replyMessage.messages[0].ts !== timestamp) {
+          throw new Error("取得できたreplyMessageのtimestampが一致しません", {
+            cause: {
+              historyTimestamp: replyMessage.messages[0].ts,
+              timestamp,
+            },
+          });
+        }
+
+        return replyMessage.messages[0];
+      };
+
+      const message = await fetchFromHistory().catch((e) => {
+        logger.debug("`web.conversations.history`から取得できませんでした", {
+          e,
+        });
+
+        return fetchFromReplies();
+      });
+
+      if (message.type !== "message") {
+        throw new Error("取得できたメッセージのtypeが対応していません", {
+          cause: {
+            type: message.type,
+          },
+        });
+      }
+
+      return message;
     },
     fetchUserByUserId: async ({ userId }) => {
       const userResponse = await web.users.info({
@@ -97,4 +165,31 @@ export const getIdToken = async (slackAuth: SlackAuth, code: string) => {
   });
 
   return response;
+};
+
+export const verifySigning = ({
+  rawBody,
+  signingSecret,
+  signature,
+  timestamp,
+}: {
+  rawBody: string;
+  signingSecret: string;
+  signature: string;
+  timestamp: string;
+}) => {
+  if (differenceInMinutes(new Date(timestamp), new Date()) > 5) {
+    throw new Error("署名検証に失敗しました/timestampが古すぎます");
+  }
+
+  const signatureBaseString = `v0:${timestamp}:${rawBody}`;
+
+  const expectedSignature = `v0=${crypto
+    .createHmac("sha256", signingSecret)
+    .update(signatureBaseString, "utf8")
+    .digest("hex")}`;
+
+  if (signature !== expectedSignature) {
+    throw new Error("署名検証に失敗しました/signatureが一致しません");
+  }
 };

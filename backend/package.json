@@ -1,12 +1,15 @@
 {
   "name": "backend",
-  "type": "module",
   "scripts": {
-    "test": "echo 'まだテストありません🥺'",
+    "test": "jest",
     "dev": "tsx watch src/entrypoint/node.ts"
   },
   "devDependencies": {
     "@hono/node-server": "^1.13.1",
+    "@swc/core": "^1.7.39",
+    "@swc/jest": "^0.2.36",
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
     "tsx": "^4.7.1"
   },
   "dependencies": {

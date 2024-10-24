@@ -1,16 +1,15 @@
 import { decode, sign, verify } from "hono/jwt";
-import { findUserBySlackUserId, putUserToStorage } from "../user.storage";
 import {
   generateSlackClient,
   getIdToken,
 } from "../../_shared/storage/slackClient";
 import { parameterClient } from "../../_shared/storage/parameterClient";
 import { z } from "zod";
-import { SlackUser } from "../../message/message.service";
 import crypto from "crypto";
 import { UnauthorizedError } from "../../_shared/errors";
 import { findByState, putAuthStateToStorage } from "./auth.storage";
 import { logger } from "../../_shared/util/logger";
+import { User } from "../user.entity";
 
 const IdTokenSchema = z.object({
   // NOTE: https://slack.com/openid/connect/keys
@@ -39,16 +38,15 @@ export const startAuthenticationFlow = async (): Promise<AuthState> => {
 };
 
 export const authenticate = async (code: string, state: string) => {
-  const slackUser = await getSlackUserByCode(code, state);
-
-  let user = await findUserBySlackUserId(slackUser.id);
-  if (user === null) {
-    user = await generateUser(slackUser);
-  }
+  const slackUser = await getUserBySlackCode(code, state);
 
   const payload = {
-    sub: user.slackUserId,
+    sub: slackUser.id,
     role: "user",
+    profile: {
+      name: slackUser.profile.name,
+      image: slackUser.profile.image,
+    },
     exp: Math.floor(Date.now() / 1000) + 60 * 30, // Token expires in 30 minutes
   };
   const jwtSecret = await parameterClient.fetchJwtSecretKey();
@@ -56,14 +54,13 @@ export const authenticate = async (code: string, state: string) => {
 
   return {
     token,
-    user,
   };
 };
 
-const getSlackUserByCode = async (
+const getUserBySlackCode = async (
   code: string,
   state: string
-): Promise<SlackUser> => {
+): Promise<User> => {
   const authState = await findByState(state);
   if (authState === null) {
     throw new UnauthorizedError();
@@ -96,17 +93,6 @@ const getSlackUserByCode = async (
   const slackClient = generateSlackClient(slackAuth.botToken);
   const user = await slackClient.fetchUserByUserId({ userId });
 
-  return user;
-};
-
-const generateUser = async (slackUser: SlackUser) => {
-  const user = {
-    slackUserId: slackUser.id,
-    displayUserName: slackUser.profile.name,
-    userImage: slackUser.profile.image,
-    registeredDate: new Date(),
-  };
-  await putUserToStorage(user);
   return user;
 };
 

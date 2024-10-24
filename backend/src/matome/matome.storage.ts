@@ -12,7 +12,13 @@ interface DynamoMatomeItem {
   Id: string;
   Title: string;
   Description: string;
-  CreatedUserId: string;
+  CreatedUser: {
+    id: string;
+    profile: {
+      name: string;
+      image: string | null;
+    };
+  };
   // 100件まで
   MessageIdList: MessageCompositeKey[];
   CreatedDate: string;
@@ -23,7 +29,7 @@ export const toStorageMatome = (matome: Matome): DynamoMatomeItem => {
     Id: matome.id,
     Title: matome.title,
     Description: matome.description,
-    CreatedUserId: matome.createdUserId,
+    CreatedUser: matome.createdUser,
     MessageIdList: matome.messageIdList,
     CreatedDate: dateToISOString(matome.createdDate),
   };
@@ -34,7 +40,7 @@ export const toDomainMatome = (message: DynamoMatomeItem): Matome => {
     id: message.Id,
     title: message.Title,
     description: message.Description,
-    createdUserId: message.CreatedUserId,
+    createdUser: message.CreatedUser,
     messageIdList: message.MessageIdList,
     createdDate: new Date(message.CreatedDate),
   };

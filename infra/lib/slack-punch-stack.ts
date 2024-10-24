@@ -14,6 +14,9 @@ export class SlackPunchStack extends cdk.Stack {
       functionName: "SlackPunchBackend",
       handler: "handler",
       runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
+      environment: {
+        POWERTOOLS_LOG_LEVEL: "DEBUG",
+      },
     });
     backend.addToRolePolicy(
       new iam.PolicyStatement({
@@ -55,17 +58,6 @@ export class SlackPunchStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
     tableMessage.grantReadWriteData(backend);
-
-    const tableUser = new dynamodb.Table(this, "UserTable", {
-      partitionKey: {
-        name: "SlackUserId",
-        type: dynamodb.AttributeType.STRING,
-      },
-      tableName: "SlackPunchUser",
-      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-    });
-    tableUser.grantReadWriteData(backend);
 
     const tableAuthState = new dynamodb.Table(this, "AuthStateTable", {
       partitionKey: {
