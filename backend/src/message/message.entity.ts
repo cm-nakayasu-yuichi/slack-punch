@@ -2,7 +2,7 @@ export type MessageCompositeKey = `${string}/${string}`;
 
 export type Message = {
   channelId: string;
-  timestamp: string;
+  timestamp: number;
   channelName: string;
   message: string;
   postedDate: Date;
@@ -13,10 +13,19 @@ export type Message = {
   blowUserId: string;
   blowUserName: string;
 };
-export const decodeFromCompositeKey = (compositeKey: MessageCompositeKey) => {
+
+export const decodeFromCompositeKey = (compositeKey: string) => {
   const [postUserId, timestamp] = compositeKey.split("/");
+  if (!timestamp || !postUserId)
+    throw new Error("意図しないcompositeKeyです", { cause: { compositeKey } });
   return {
     postUserId,
-    timestamp,
+    timestamp: parseFloat(timestamp),
   };
+};
+
+export const encodeToCompositeKey = (
+  message: Pick<Message, "postUserId" | "timestamp">
+) => {
+  return message.postUserId + "/" + message.timestamp;
 };

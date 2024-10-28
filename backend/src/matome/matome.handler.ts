@@ -1,7 +1,11 @@
 import { Hono, MiddlewareHandler } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { createMatome, getMatome, getMatomeList } from "./matome.service";
+import {
+  createMatome,
+  getMatome,
+  getMatomeListByYearMonth,
+} from "./matome.service";
 import { decodeFromJwtPayload } from "../user/user.helper";
 
 export const registerHandlerMatome = (
@@ -46,10 +50,22 @@ export const registerHandlerMatome = (
     }
   );
 
-  app.get("/matome", jwtAuth, async (c) => {
-    const matomeList = await getMatomeList();
-    return c.json({ matomeList });
-  });
+  app.get(
+    "/matome",
+    jwtAuth,
+    zValidator(
+      "query",
+      z.object({
+        yearMonth: z.string().regex(/^\d{4}-\d{2}$/),
+      })
+    ),
+    async (c) => {
+      const yearMonth = c.req.query("yearMonth");
+      console.log({ yearMonth });
+      const matomeList = await getMatomeListByYearMonth(yearMonth!);
+      return c.json({ matomeList });
+    }
+  );
 
   app.get("/matome/:matomeId", jwtAuth, async (c) => {
     const matomeId = c.req.param("matomeId");

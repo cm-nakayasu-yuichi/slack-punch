@@ -1,5 +1,7 @@
 import { Hono, MiddlewareHandler } from "hono";
-import { getAllMessages } from "./message.storage";
+import { getMessagesByYearMonth } from "./message.storage";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 
 export const registerHandlerMessage = (
   app: Hono,
@@ -9,8 +11,19 @@ export const registerHandlerMessage = (
     jwtAuth: MiddlewareHandler;
   }
 ) => {
-  app.get("/messages", jwtAuth, async (c) => {
-    const messages = await getAllMessages();
-    return c.json({ messages, lastKey: null });
-  });
+  app.get(
+    "/messages",
+    jwtAuth,
+    zValidator(
+      "query",
+      z.object({
+        yearMonth: z.string().regex(/^\d{4}-\d{2}$/),
+      })
+    ),
+    async (c) => {
+      const yearMonth = c.req.query("yearMonth");
+      const { messages } = await getMessagesByYearMonth(yearMonth!);
+      return c.json({ messages });
+    }
+  );
 };

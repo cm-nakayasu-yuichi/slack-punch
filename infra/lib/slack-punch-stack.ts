@@ -57,6 +57,17 @@ export class SlackPunchStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
+    tableMessage.addGlobalSecondaryIndex({
+      indexName: "YearMonthIndex",
+      partitionKey: {
+        name: "PostedYearMonth",
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: "Timestamp",
+        type: dynamodb.AttributeType.NUMBER,
+      },
+    });
     tableMessage.grantReadWriteData(backend);
 
     const tableAuthState = new dynamodb.Table(this, "AuthStateTable", {
@@ -78,6 +89,17 @@ export class SlackPunchStack extends cdk.Stack {
       tableName: "SlackPunchMatome",
       removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+    tableMatome.addGlobalSecondaryIndex({
+      indexName: "YearMonthIndex",
+      partitionKey: {
+        name: "CreatedYearMonth",
+        type: dynamodb.AttributeType.STRING,
+      },
+      sortKey: {
+        name: "CreatedDate",
+        type: dynamodb.AttributeType.NUMBER,
+      },
     });
     tableMatome.grantReadWriteData(backend);
   }

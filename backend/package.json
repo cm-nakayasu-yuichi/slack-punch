@@ -2,7 +2,7 @@
   "name": "backend",
   "scripts": {
     "test": "jest",
-    "dev": "tsx watch src/entrypoint/node.ts"
+    "dev": "POWERTOOLS_LOG_LEVEL=debug POWERTOOLS_DEV=true tsx watch src/entrypoint/node.ts"
   },
   "devDependencies": {
     "@hono/node-server": "^1.13.1",

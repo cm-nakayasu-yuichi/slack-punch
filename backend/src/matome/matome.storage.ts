@@ -1,9 +1,15 @@
-import { GetCommand, PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+  QueryCommandOutput,
+  ScanCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { Matome } from "./matome.service";
 import { dateToISOString } from "../_shared/util/date";
 import { logger } from "../_shared/util/logger";
 import { ddbDocClient } from "../_shared/client/ddbClient";
-import { compareDesc } from "date-fns";
+import { compareDesc, format } from "date-fns";
 import { MessageCompositeKey } from "../message/message.entity";
 
 const TABLE_NAME = "SlackPunchMatome";
@@ -22,6 +28,7 @@ interface DynamoMatomeItem {
   // 100件まで
   MessageIdList: MessageCompositeKey[];
   CreatedDate: string;
+  CreatedYearMonth: string;
 }
 
 export const toStorageMatome = (matome: Matome): DynamoMatomeItem => {
@@ -32,6 +39,7 @@ export const toStorageMatome = (matome: Matome): DynamoMatomeItem => {
     CreatedUser: matome.createdUser,
     MessageIdList: matome.messageIdList,
     CreatedDate: dateToISOString(matome.createdDate),
+    CreatedYearMonth: format(matome.createdDate, "yyyy-MM"),
   };
 };
 
@@ -77,6 +85,52 @@ export const getAllMatomes = async () => {
   ).toSorted((a, b) => {
     return compareDesc(a.createdDate, b.createdDate);
   });
+};
+
+/**
+ * 年月を指定して全メッセージ取得
+ */
+export const getMatomesByYearMonth = async (yearMonth: string) => {
+  let exclusiveStartKey: Record<string, any> | undefined = undefined;
+  const matomes: Matome[] = [];
+
+  while (true) {
+    const queryResult: QueryCommandOutput = await ddbDocClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: "YearMonthIndex",
+        KeyConditionExpression: "CreatedYearMonth = :createdYearMonth",
+        ExpressionAttributeValues: {
+          ":createdYearMonth": yearMonth,
+        },
+        ExclusiveStartKey: exclusiveStartKey,
+      })
+    );
+    logger.debug("DynamoDBから取得しました", {
+      exclusiveStartKey,
+      queryResult,
+    });
+    if (queryResult.Items === undefined) {
+      throw new Error("取得できませんでした");
+    }
+
+    const fetchedMessages = queryResult.Items.map((item) =>
+      toDomainMatome(item as DynamoMatomeItem)
+    );
+    matomes.push(...fetchedMessages);
+
+    if (queryResult.LastEvaluatedKey === undefined) {
+      break;
+    }
+
+    exclusiveStartKey = queryResult.LastEvaluatedKey;
+  }
+
+  // NOTE: GSIでindex登録されてるため、並べ替える必要なし
+
+  return {
+    matomes,
+  };
 };
 
 export const getMatomeById = async (matomeId: string) => {
