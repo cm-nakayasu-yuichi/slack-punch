@@ -98,7 +98,7 @@ export class SlackPunchStack extends cdk.Stack {
       },
       sortKey: {
         name: "CreatedDate",
-        type: dynamodb.AttributeType.NUMBER,
+        type: dynamodb.AttributeType.STRING,
       },
     });
     tableMatome.grantReadWriteData(backend);

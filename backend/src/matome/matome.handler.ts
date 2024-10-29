@@ -61,9 +61,8 @@ export const registerHandlerMatome = (
     ),
     async (c) => {
       const yearMonth = c.req.query("yearMonth");
-      console.log({ yearMonth });
-      const matomeList = await getMatomeListByYearMonth(yearMonth!);
-      return c.json({ matomeList });
+      const { matomes } = await getMatomeListByYearMonth(yearMonth!);
+      return c.json({ matomes });
     }
   );
 
