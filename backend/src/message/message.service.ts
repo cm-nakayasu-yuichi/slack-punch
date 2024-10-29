@@ -8,7 +8,7 @@ export type SlackMessage = {
   text: string;
 };
 
-export const saveMessage = async (
+export const fetchMessage = async (
   slackClient: SlackClient,
   channelId: string,
   timestamp: string,
@@ -37,7 +37,7 @@ export const saveMessage = async (
 
   const message = {
     channelId,
-    timestamp,
+    timestamp: parseFloat(timestamp),
     channelName: conversation.channelName,
     message: slackMessage.text,
     postedDate: timestampToDate(timestamp),

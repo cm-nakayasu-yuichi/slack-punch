@@ -4,6 +4,7 @@ import { User } from "../user/user.entity";
 import {
   getAllMatomes,
   getMatomeById,
+  getMatomesByYearMonth,
   putMatomeToStorage,
 } from "./matome.storage";
 
@@ -34,6 +35,11 @@ export const createMatome = async (
 
 export const getMatomeList = async () => {
   const matomeList = await getAllMatomes();
+  return matomeList;
+};
+
+export const getMatomeListByYearMonth = async (yearMonth: string) => {
+  const matomeList = await getMatomesByYearMonth(yearMonth);
   return matomeList;
 };
 

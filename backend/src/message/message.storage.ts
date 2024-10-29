@@ -1,13 +1,14 @@
 import {
   BatchGetCommand,
   PutCommand,
-  ScanCommand,
+  QueryCommand,
+  QueryCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import { safeParseFloat } from "../_shared/util/string";
 import { dateToISOString } from "../_shared/util/date";
 import { logger } from "../_shared/util/logger";
 import { ddbDocClient } from "../_shared/client/ddbClient";
-import { compareDesc } from "date-fns";
+import { compareDesc, format } from "date-fns";
 import {
   decodeFromCompositeKey,
   Message,
@@ -25,7 +26,7 @@ interface DynamoMessageItem {
   PostUserImageUrl: string | null;
   ChannelId: string;
   ChannelName: string;
-  PostedDate: string;
+  PostedYearMonth: string;
   Message: string;
   BlownDate: string;
   BlowUserName: string;
@@ -37,12 +38,12 @@ export const messageToDynamoMessageItem = (
 ): DynamoMessageItem => {
   return {
     PostUserId: message.postUserId,
-    Timestamp: safeParseFloat(message.timestamp),
+    Timestamp: message.timestamp,
     PostUserName: message.postUserName,
     PostUserImageUrl: message.postUserImageUrl,
+    PostedYearMonth: format(message.postedDate, "yyyy-MM"),
     ChannelId: message.channelId,
     ChannelName: message.channelName,
-    PostedDate: dateToISOString(message.postedDate),
     Message: message.message,
     BlownDate: dateToISOString(message.blownDate),
     BlowUserName: message.blowUserName,
@@ -53,12 +54,12 @@ export const messageToDynamoMessageItem = (
 export const toDomainMessage = (message: DynamoMessageItem): Message => {
   return {
     postUserId: message.PostUserId,
-    timestamp: message.Timestamp.toString(),
+    timestamp: message.Timestamp,
     postUserName: message.PostUserName,
     postUserImageUrl: message.PostUserImageUrl,
     channelId: message.ChannelId,
     channelName: message.ChannelName,
-    postedDate: new Date(message.PostedDate),
+    postedDate: new Date(message.Timestamp),
     message: message.Message,
     blownDate: new Date(message.BlownDate),
     blowUserName: message.BlowUserName,
@@ -80,23 +81,49 @@ export const saveMessageToStorage = async (message: Message) => {
 };
 
 /**
- * 全件取得
- * FIXME: 1MBを超えると全件取得できないので修正する
- * FIXME: 返却する方がanyのままなのでzodなど使って修正する
+ * 年月を指定して全メッセージ取得
  */
-export const getAllMessages = async () => {
-  const params = {
-    TableName: TABLE_NAME,
-  };
-  const result = await ddbDocClient.send(new ScanCommand(params));
-  if (result.Items === undefined) {
-    throw new Error("取得できませんでした");
+export const getMessagesByYearMonth = async (yearMonth: string) => {
+  let exclusiveStartKey: Record<string, any> | undefined = undefined;
+  const messages: Message[] = [];
+
+  while (true) {
+    const queryResult: QueryCommandOutput = await ddbDocClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: "YearMonthIndex",
+        KeyConditionExpression: "PostedYearMonth = :postedYearMonth",
+        ExpressionAttributeValues: {
+          ":postedYearMonth": yearMonth,
+        },
+        ExclusiveStartKey: exclusiveStartKey,
+      })
+    );
+    logger.debug("DynamoDBから取得しました", {
+      exclusiveStartKey,
+      queryResult,
+    });
+    if (queryResult.Items === undefined) {
+      throw new Error("取得できませんでした");
+    }
+
+    const fetchedMessages = queryResult.Items.map((item) =>
+      toDomainMessage(item as DynamoMessageItem)
+    );
+    messages.push(...fetchedMessages);
+
+    if (queryResult.LastEvaluatedKey === undefined) {
+      break;
+    }
+
+    exclusiveStartKey = queryResult.LastEvaluatedKey;
   }
-  return result.Items?.map((item) =>
-    toDomainMessage(item as DynamoMessageItem)
-  ).toSorted((a, b) => {
-    return compareDesc(a.postedDate, b.postedDate);
-  });
+
+  // NOTE: GSIでindex登録されてるため、並べ替える必要なし
+
+  return {
+    messages,
+  };
 };
 
 export const getMessagesByIdList = async (
@@ -106,7 +133,7 @@ export const getMessagesByIdList = async (
     const { postUserId, timestamp } = decodeFromCompositeKey(messageId);
     return {
       PostUserId: postUserId,
-      Timestamp: safeParseFloat(timestamp),
+      Timestamp: timestamp,
     };
   });
   const result = await ddbDocClient.send(

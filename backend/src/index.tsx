@@ -1,8 +1,8 @@
 import { Context, Hono, MiddlewareHandler } from "hono";
 import { ReactionAddedEvent, WebClient } from "@slack/web-api";
-import { saveMessage } from "./message/message.service";
+import { fetchMessage } from "./message/message.service";
 import {
-  getAllMessages,
+  getMessagesByYearMonth,
   saveMessageToStorage,
 } from "./message/message.storage";
 import { logger } from "./_shared/util/logger";
@@ -99,7 +99,7 @@ export const createApp = async () => {
   };
 
   app.get("/debug", customAuthMiddleware, async (c) => {
-    const messages = await getAllMessages();
+    const { messages } = await getMessagesByYearMonth(9999);
     const matomes = await getAllMatomes();
     logger.debug("メッセージを全件取得しました", { messages });
     logger.debug("まとめを全件取得しました", { matomes });
@@ -127,7 +127,7 @@ const handleReactionAdded = async (c: Context, event: ReactionAddedEvent) => {
   const token = await parameterClient.fetchSlackToken(event.user);
   const slackClient = generateSlackClient(token);
 
-  const message = await saveMessage(
+  const message = await fetchMessage(
     slackClient,
     event.item.channel,
     event.item.ts,
