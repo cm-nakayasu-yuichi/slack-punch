@@ -1,11 +1,12 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Page } from "../Page";
+import { ArticleRoute } from "./routes/ArticleRoute";
 
 export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route index element={<Page />} />
+        <Route index element={<ArticleRoute />} />
+        <Route path="article" element={<ArticleRoute />} />
       </Routes>
     </BrowserRouter>
   );
