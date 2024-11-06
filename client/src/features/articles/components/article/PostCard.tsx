@@ -8,7 +8,7 @@ interface PostCardProps {
   date: string;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ avatarUrl, username, content, date }) => {
+export const PostCard: React.FC<PostCardProps> = ({ avatarUrl, username, content, date }) => {
     return (
       <Card sx={{ mb: 2 }}>
         <CardContent>
@@ -36,4 +36,4 @@ const PostCard: React.FC<PostCardProps> = ({ avatarUrl, username, content, date 
     );
   };
 
-export default PostCard;
+//export default PostCard;

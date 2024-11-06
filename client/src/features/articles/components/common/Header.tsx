@@ -3,7 +3,7 @@ import { AccountCircle } from '@mui/icons-material'
 import MenuIcon from '@mui/icons-material/Menu'
 import { AppBar,Container, IconButton, Toolbar, Typography, Menu, MenuItem } from '@mui/material'
 
-function Header() {
+export function Header() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -25,12 +25,12 @@ function Header() {
             aria-label="menu"
             sx={{ mr: 2 }}
           >
-            <MenuIcon/>
+            <MenuIcon />
           </IconButton>
           <Typography
             variant="h6"
             component="div"
-            sx={{ 
+            sx={{
               flexGrow: 1,
               textAlign: 'left'
             }}
@@ -80,5 +80,3 @@ function Header() {
     </AppBar>
   )
 }
-
-export default Header
